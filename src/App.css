@@ -34,10 +34,21 @@
 
 .menu-bar{
   display: flex;
-  flex-direction: column;
+  flex-direction:column;
   gap: 10px;
   font-weight: 500;
   margin-top: 0;
+}
+
+.consultation-header{
+  display: flex;
+  gap: 10px;
+  font-weight: 500;
+  margin-top: 0;
+  background-color: white;
+  border: '1px solid white';
+
+
 }
 
 .ant-menu-item-selected{

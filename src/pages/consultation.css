@@ -1,0 +1,14 @@
+/*consultation.css*/
+.MuiTabs-indicator {
+    background-color: #2e3790 !important; 
+    
+  }
+
+.MuiTab-label {
+    font-family: 'Roboto', sans-serif; /* Replace 'YourCustomFont' with your desired font */
+    text-transform: lowercase; /* Convert tab labels to lowercase */
+  }
+
+  .anticon-down {
+    border: none !important;
+  }

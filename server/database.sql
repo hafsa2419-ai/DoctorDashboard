@@ -6,8 +6,16 @@ CREATE TABLE patient (
     n_dossier SERIAL PRIMARY KEY,
     nom VARCHAR(255),
     prenom VARCHAR(255),
-    date_naissance DATE
+    age INTEGER,
+    telephone VARCHAR(20)
 );
+
+CREATE TABLE users (
+    id SERIAL PRIMARY KEY ,
+    username VARCHAR(255) NOT NULL,
+    passworduser VARCHAR(255) NOT NULL,
+    UNIQUE (username)
+  );
 
 CREATE TABLE medicaments (
     id SERIAL PRIMARY KEY,
