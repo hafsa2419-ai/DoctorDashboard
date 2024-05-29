@@ -17,6 +17,14 @@ CREATE TABLE users (
     UNIQUE (username)
   );
 
+  CREATE TABLE type_antecedents (
+    id_type_antecedents SERIAL PRIMARY KEY,
+    Familiaux TEXT,
+    Chirurgicaux TEXT,
+    Medicaux TEXT
+
+);
+
 CREATE TABLE medicaments (
     id SERIAL PRIMARY KEY,
     designation VARCHAR(255),

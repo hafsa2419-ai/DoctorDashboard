@@ -6,7 +6,7 @@
 
 .MuiTab-label {
     font-family: 'Roboto', sans-serif; /* Replace 'YourCustomFont' with your desired font */
-    text-transform: lowercase; /* Convert tab labels to lowercase */
+    text-transform: lowercase !important; /* Convert tab labels to lowercase */
   }
 
   .anticon-down {

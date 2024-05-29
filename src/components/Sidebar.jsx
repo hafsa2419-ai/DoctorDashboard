@@ -69,7 +69,7 @@ const Sidebar = () => {
 
 export default Sidebar;*/
 //////////////////////////////
-/*
+
 import { Flex, Menu } from 'antd';
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -119,7 +119,9 @@ const Sidebar = () => {
     );
 };
 
-export default Sidebar;*/
+export default Sidebar;
+
+
 
 
 // Sidebar.jsx
@@ -176,7 +178,7 @@ const Sidebar = () => {
 };
 
 export default Sidebar;*/
-
+/*
 import React from 'react';
 import { Menu, Flex, Dropdown } from 'antd';
 import { Link } from 'react-router-dom';
@@ -195,7 +197,7 @@ const Sidebar = () => {
                 </div>
             </Flex>
 
-            <Menu mode='inline' defaultSelectedKeys={['1']} className='menu-bar'>
+            <Menu mode='inline' defaultSelectedKeys={['1']} className='menu-bar' >
                 <Menu.Item key='1' icon={<FontAwesomeIcon icon={faHouse} />}>
                     <Link to="/MainContent">Acceuil</Link>
                 </Menu.Item>
@@ -229,5 +231,116 @@ const Sidebar = () => {
 };
 
 export default Sidebar;
+*/
+/*
+import React from 'react';
+import { Menu, Flex } from 'antd';
+import { NavLink } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faHouse, faUser, faUsers, faStethoscope, faFlask, faPills, faSignOutAlt, faCreditCard, faChartLine } from '@fortawesome/free-solid-svg-icons';
+import logo from '../assets/clinique1.png';
+
+const Sidebar = () => {
+    return (
+        <>
+            <Flex align='center' justify='center'>
+                <div className='logo'>
+                    <img src={logo} alt="Clinique Logo" style={{ width: '100px', height: 'auto' }} />
+                </div>
+            </Flex>
+
+            <Menu mode='inline' defaultSelectedKeys={['1']} className='menu-bar' >
+                <Menu.Item key='1' icon={<FontAwesomeIcon icon={faHouse} />}>
+                    <NavLink exact to="/MainContent">Acceuil</NavLink>
+                </Menu.Item>
+                <Menu.Item key='2' icon={<FontAwesomeIcon icon={faUser} />}>
+                    <NavLink to="/patients">Patient</NavLink>
+                </Menu.Item>
+                <Menu.Item key='3' icon={<FontAwesomeIcon icon={faUsers} />}>
+                    <NavLink to="/waiting-list">File d'attente</NavLink>
+                </Menu.Item>
+                <Menu.Item key='4' icon={<FontAwesomeIcon icon={faStethoscope} />}>
+                    <NavLink to="/consultation">Consultation</NavLink>
+                </Menu.Item>
+                <Menu.Item key='5' icon={<FontAwesomeIcon icon={faFlask} />}>
+                    <NavLink to="/bilan">Bilan</NavLink>
+                </Menu.Item>
+                <Menu.Item key='6' icon={<FontAwesomeIcon icon={faPills} />}>
+                    <NavLink to="/medicament">Medicament</NavLink>
+                </Menu.Item>
+                <Menu.Item key='7' icon={<FontAwesomeIcon icon={faChartLine} />}>
+                    <NavLink to="/statistiques">Statistiques</NavLink>
+                </Menu.Item>
+                <Menu.Item key='8' icon={<FontAwesomeIcon icon={faCreditCard} />}>
+                    <NavLink to="/paiement">Paiment</NavLink>
+                </Menu.Item>
+                <Menu.Item key='9' icon={<FontAwesomeIcon icon={faSignOutAlt} />}>
+                    <NavLink to="/logout">LogOut</NavLink>
+                </Menu.Item>
+            </Menu>
+        </>
+    );
+};
+
+export default Sidebar;
+*/
+/*
+import React, { useState } from 'react';
+import { Menu, Flex } from 'antd';
+import { NavLink } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faHouse, faUser, faUsers, faStethoscope, faFlask, faPills, faSignOutAlt, faCreditCard, faChartLine } from '@fortawesome/free-solid-svg-icons';
+import logo from '../assets/clinique1.png';
+
+const Sidebar = () => {
+    const [activeKey, setActiveKey] = useState('1');
+
+    const handleSetActiveKey = (key) => {
+        setActiveKey(key);
+    };
+
+    return (
+        <>
+            <Flex align='center' justify='center'>
+                <div className='logo'>
+                    <img src={logo} alt="Clinique Logo" style={{ width: '100px', height: 'auto' }} />
+                </div>
+            </Flex>
+
+            <Menu mode='inline' selectedKeys={[activeKey]} className='menu-bar'>
+                <Menu.Item key='1' icon={<FontAwesomeIcon icon={faHouse} />}>
+                    <NavLink exact to="/MainContent">Acceuil</NavLink>
+                </Menu.Item>
+                <Menu.Item key='2' icon={<FontAwesomeIcon icon={faUser} />}>
+                    <NavLink to="/patients">Patient</NavLink>
+                </Menu.Item>
+                <Menu.Item key='3' icon={<FontAwesomeIcon icon={faUsers} />}>
+                    <NavLink to="/waiting-list">File d'attente</NavLink>
+                </Menu.Item>
+                <Menu.Item key='4' icon={<FontAwesomeIcon icon={faStethoscope} />}>
+                    <NavLink to="/consultation">Consultation</NavLink>
+                </Menu.Item>
+                <Menu.Item key='5' icon={<FontAwesomeIcon icon={faFlask} />}>
+                    <NavLink to="/bilan">Bilan</NavLink>
+                </Menu.Item>
+                <Menu.Item key='6' icon={<FontAwesomeIcon icon={faPills} />}>
+                    <NavLink to="/medicament">Medicament</NavLink>
+                </Menu.Item>
+                <Menu.Item key='7' icon={<FontAwesomeIcon icon={faChartLine} />}>
+                    <NavLink to="/statistiques">Statistiques</NavLink>
+                </Menu.Item>
+                <Menu.Item key='8' icon={<FontAwesomeIcon icon={faCreditCard} />}>
+                    <NavLink to="/paiement">Paiment</NavLink>
+                </Menu.Item>
+                <Menu.Item key='9' icon={<FontAwesomeIcon icon={faSignOutAlt} />}>
+                    <NavLink to="/logout">LogOut</NavLink>
+                </Menu.Item>
+            </Menu>
+        </>
+    );
+};
+
+export default Sidebar;*/
+
 
 
