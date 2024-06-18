@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Layout, Typography, Button, Drawer, Menu, Dropdown } from 'antd';
-import { Flex } from 'antd';
 import { DownOutlined } from '@ant-design/icons';
 import AppBar from '@mui/material/AppBar';
 import Tabs from '@mui/material/Tabs';
@@ -15,9 +14,8 @@ import CompteRendu from './CompteRendu';
 import ConduiteATenir from './ConduiteATenir';
 import Certificat from './Certificat';
 import Ordonnance from './Ordonnance';
-import Interrogatoire from './Interrogatoire';
-import ExClinique from './ExClinique';
-import ExParClinique from './ExParClinique';
+import ArretDeTravail from './ArretDeTravail';
+import CertificatMedical from './CertificatMedical';
 import "./consultation.css";
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSortDown } from '@fortawesome/free-solid-svg-icons';
@@ -30,7 +28,7 @@ const Consultation = () => {
   const { n_dossier, nom, prenom } = state || {};
   const [showHistory, setShowHistory] = useState(false);
   const [value, setValue] = useState(0);
-  const [selectedConsultationItem, setSelectedConsultationItem] = useState(null);
+  const [selectedCertificatItem, setSelectedCertificatItem] = useState(null);
   const theme = useTheme();
 
   const capitalize = (str) => {
@@ -65,31 +63,30 @@ const Consultation = () => {
     setValue(index);
   };
 
-  const consultationMenuItems = [
-    { key: 'interrogatoire', label: 'Interrogatoire' },
-    { key: 'examen-clinique', label: 'Examen clinique' },
-    { key: 'examen-paraclinique', label: 'Examen paraclinique' },
+  const certificatMenuItems = [
+    { key: 'arrêt-de-travail', label: 'arrêt de travail' },
+    { key: 'certificat-médical', label: 'certificat médical' },
   ];
 
-  const handleConsultationMenuClick = ({ key }) => {
-    setSelectedConsultationItem(key);
-    setValue(1); // Switch to the Consultation tab
+  const handleCertificatMenuClick = ({ key }) => {
+    setSelectedCertificatItem(key);
+    setValue(5); // Switch to the Certificat tab
   };
 
-  const consultationMenu = (
-    <Menu onClick={handleConsultationMenuClick} items={consultationMenuItems} />
+  const certificatMenu = (
+    <Menu onClick={handleCertificatMenuClick} items={certificatMenuItems} />
   );
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
       <Content style={{ padding: '10px', minHeight: 100 }}>
-        <Flex align='center' justify='space-between' style={{ marginTop: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 0 }}>
           <Typography.Title level={3} type='secondary'>
             N° Dossier: {n_dossier}
             <span style={{ marginLeft: '50px' }}>Patient: {capitalizedNom} {capitalizedPrenom}</span>
           </Typography.Title>
           <Button type="secondary" onClick={showHistoryDrawer}>Historique</Button>
-        </Flex>
+        </div>
       </Content>
 
       <Drawer
@@ -103,7 +100,7 @@ const Consultation = () => {
         {/* Content for the patient's history */}
       </Drawer>
 
-      <AppBar position="static">
+      <AppBar style={{ backgroundColor: '#45c1b3', color: '#fff', textAlign: 'center', padding: '10px 0' , borderTopRightRadius: '12px' , borderTopLeftRadius:'12px', display: 'flex', height:'50px'}} position="static" >
         <Tabs
           value={value}
           onChange={handleChange}
@@ -119,19 +116,13 @@ const Consultation = () => {
               },
             }}
           />
-          <Dropdown overlay={consultationMenu} trigger={['click']}>
-            <Tab label={
-              <div>
-                Consultation
-                <FontAwesomeIcon icon={faSortDown} style={{ marginLeft: 8 }} />
-              </div>
-            } 
+          <Tab label="Consultation" 
             sx={{
               '&.Mui-selected': { 
-                color: selectedConsultationItem ? '#2e3790' : '#fff', // Set text color to blue if an item is selected, otherwise white
+                color: '#2e3790', 
               },
-            }}/>
-          </Dropdown>
+            }}
+          />
           <Tab label="Ordonnance" 
             sx={{
               '&.Mui-selected': { 
@@ -153,13 +144,19 @@ const Consultation = () => {
               },
             }}
           />
-          <Tab label="Certificat" 
+          <Dropdown overlay={certificatMenu} trigger={['click']}>
+            <Tab label={
+              <div>
+                Certificat
+                <FontAwesomeIcon icon={faSortDown} style={{ marginLeft: 8 }} />
+              </div>
+            } 
             sx={{
               '&.Mui-selected': { 
-                color: '#2e3790', 
+                color: selectedCertificatItem ? '#2e3790' : '#fff', // Set text color to blue if an item is selected, otherwise white
               },
-            }}
-          />
+            }}/>
+          </Dropdown>
         </Tabs>
       </AppBar>
 
@@ -180,7 +177,7 @@ const Consultation = () => {
             display: value === 0 ? 'block' : 'none',
           }}
         >
-          {value === 0 && <Antecedents />}
+          {value === 0 && <Antecedents nDossier={n_dossier}/>}
         </Box>
         <Box
           role="tabpanel"
@@ -194,12 +191,7 @@ const Consultation = () => {
             display: value === 1 ? 'block' : 'none',
           }}
         >
-          {value === 1 && (
-            selectedConsultationItem === 'interrogatoire' ? <Interrogatoire /> :
-            selectedConsultationItem === 'examen-clinique' ? <ExClinique /> :
-            selectedConsultationItem === 'examen-paraclinique' ? <ExParClinique /> :
-            <ConsultationPage />
-          )}
+          {value === 1 && <ConsultationPage nDossier={n_dossier}/>}
         </Box>
         <Box
           role="tabpanel"
@@ -255,7 +247,11 @@ const Consultation = () => {
             display: value === 5 ? 'block' : 'none',
           }}
         >
-          {value === 5 && <Certificat />}
+          {value === 5 && (
+            selectedCertificatItem === 'arrêt-de-travail' ? <ArretDeTravail /> :
+            selectedCertificatItem === 'certificat-médical' ? <CertificatMedical /> :
+            <Certificat />
+          )}
         </Box>
       </SwipeableViews>
     </Layout>
@@ -263,3 +259,4 @@ const Consultation = () => {
 };
 
 export default Consultation;
+

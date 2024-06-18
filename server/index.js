@@ -1,212 +1,92 @@
-/*const express = require("express");
-const app = express();
-const cors = require("cors");
-const pool = require("./db");
-
-app.use(cors());
-app.use(express.json());
-
-//ajouter un patient 
-
-app.post("/patient", async (req, res) => {
-    try {
-        const { nom, prenom, date_naissance } = req.body;
-        const newPatient = await pool.query(
-          "INSERT INTO patient (Nom, Prenom, Date_naissance) VALUES ($1, $2, $3) RETURNING *", 
-        [nom, prenom, date_naissance]);
-        
-        res.json(newPatient.rows[0]); 
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send("Server Error");
-    }
-  });
-
-
-  // rechercher un patient par le nom
-app.get("/patient/:nom", async (req, res) => {
-    try {
-      const { nom } = req.params;
-      const patient = await pool.query("SELECT * FROM patient WHERE nom = $1", [
-        nom,
-      ]);
-  
-      if (patient.rows.length === 0) {
-        return res.status(404).json({ message: "Pas de résultat" });
-      }
-   
-      res.json(patient.rows); 
-    } catch (err) {
-      console.error(err.message);
-      res.status(500).send("Server Error");
-    }
-  });
-
-  
-  //donner tout la liste de patient
-app.get("/patient", async (req, res) => {
-    try {
-      const allPatients = await pool.query("SELECT * FROM patient");  
-      res.json(allPatients.rows);
-    } catch (err) {
-      console.error(err.message);
-      res.status(500).send("Server Error");
-    }
-  })
-  
-
-  //modifier un patient avec le nom
-
-app.put("/patient/:oldNom", async (req, res) => {
-    try {
-        const { oldNom } = req.params; // Old name
-        const { nom, prenom, date_naissance } = req.body; // New values
-
-        // Update patient record in the database
-        const updatedPatient = await pool.query(
-            "UPDATE patient SET nom = $1, prenom = $2, date_naissance = $3 WHERE nom = $4 RETURNING *",
-            [nom, prenom, date_naissance, oldNom]
-        );
-
-        if (updatedPatient.rows.length === 0) {
-            return res.status(404).json({ message: "Patient not found" });
-        }
-
-        res.json(updatedPatient.rows[0]); // Respond with the updated patient record
-    } catch (err) {
-        console.error(err.message);
-        res.status(500).send("Server Error");
-    }
-});
-
-  //suprimer un patient 
-
-app.delete("/patient/:nom", async (req, res) => {
-    try {
-      const { nom } = req.params;
-  
-      const deletedPatient = await pool.query(
-        "DELETE FROM patient WHERE nom = $1 RETURNING *",
-        [nom]
-      );
-  
-      if (deletedPatient.rows.length === 0) {
-        return res.status(404).json({ message: "pas de résultat" });
-      }
-  
-      res.json(deletedPatient.rows[0]);
-    } catch (err) {
-      console.error(err.message);
-      res.status(500).send("Server Error");
-    }
-  });
-  
-  
-
-app.listen(5000, () =>{
-    console.log("server has started on port 5000");
-    });
-
-
-*/
-
 const express = require("express");
 const app = express();
 const cors = require("cors");
 const pool = require("./db");
 const bcrypt = require('bcrypt');
 
-
 app.use(cors());
 app.use(express.json());
 
-// Add a patientso 
+// User registration
+app.post('/register', async (req, res) => {
+  const { username, password } = req.body;
 
+  if (!username || !password) {
+      return res.status(400).json({ error: 'Username and password are required' });
+  }
+
+  try {
+      const existingUser = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+      if (existingUser.rows.length > 0) {
+          return res.status(400).json({ error: 'Username already taken' });
+      }
+
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      const newUser = await pool.query(
+          'INSERT INTO users (username, passworduser) VALUES ($1, $2) RETURNING *',
+          [username, hashedPassword]
+      );
+
+      res.status(201).json({ message: 'User registered successfully', user: newUser.rows[0] });
+  } catch (error) {
+      console.error('Error during registration:', error);
+      res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// User login
+app.post('/login', async (req, res) => {
+  const { username, password } = req.body;
+
+  if (!username || !password) {
+      return res.status(400).json({ error: 'Username and password are required' });
+  }
+
+  try {
+      const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
+
+      if (result.rows.length === 0) {
+          return res.status(404).json({ error: 'User not found' });
+      }
+
+      const user = result.rows[0];
+      const passwordMatch = await bcrypt.compare(password, user.passworduser);
+
+      if (!passwordMatch) {
+          return res.status(401).json({ error: 'Invalid password' });
+      }
+
+      res.status(200).json({ message: 'Login successful', user: { id: user.id, username: user.username } });
+  } catch (error) {
+      console.error('Error during login:', error);
+      res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+
+// Add a patient
 app.post("/patient", async (req, res) => {
   try {
-      const { nom, prenom, age, telephone } = req.body; // Include telephone
-      const newPatient = await pool.query(
-          "INSERT INTO patient (nom, prenom, age, telephone) VALUES ($1, $2, $3, $4) RETURNING *",
-          [nom, prenom, age, telephone] // Include telephone
-      );
+      let { nom, prenom, date_naissance, age, sexe, telephone } = req.body;
       
+      // Vérifier si la date de naissance est uniquement une année
+      if (/^\d{4}$/.test(date_naissance)) {
+          date_naissance = `${date_naissance}-01-01`; // Complétez avec le 1er janvier
+      }
+
+      const newPatient = await pool.query(
+          "INSERT INTO patient (nom, prenom, date_naissance, age, sexe, telephone) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+          [nom, prenom, date_naissance, age, sexe, telephone]
+      );
+
       res.json(newPatient.rows[0]); 
   } catch (err) {
       console.error(err.message);
       res.status(500).send("Server Error");
   }
 });
-
-
-
-app.post('/login', async (req, res) => {
-  const { username, passworduser } = req.body;
-
-  // Validate user input
-  if (!username || !passworduser) {
-    return res.status(400).json({ error: 'Username and password are required' });
-  }
-
-  try {
-    // Query the database to retrieve the hashed password
-    const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found' });
-    }
-
-    const user = result.rows[0];
-
-    // Compare passwords
-    const passwordMatch = await bcrypt.compare(passworduser, user.passworduser);
-
-    if (!passwordMatch) {
-      return res.status(401).json({ error: 'Invalid password' });
-    }
-
-    // Passwords match, login successful
-    res.status(200).json({ message: 'Login successful', user: { id: user.id, username: user.username } });
-  } catch (error) {
-    console.error('Error during login:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-
-
-//Login endpoint
-/*app.post('/users/login', async (req, res) => {
-  const { username, password } = req.body;
-
-  try {
-    // Check if the user exists in the database
-    const user = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
-
-    if (user.rows.length === 0) {
-      return res.status(401).json({ message: 'Invalid username or password' });
-    }
-
-    // Retrieve the hashed password from the database
-    const hashedPassword = user.rows[0].password;
-
-    // Compare the provided password with the hashed password
-    const passwordMatch = await bcrypt.compare(password, hashedPassword);
-
-    if (!passwordMatch) {
-      return res.status(401).json({ message: 'Invalid password' });
-    }
-
-    // If username and password match, login is successful
-    res.json({ message: 'Login successful' });
-  } catch (error) {
-    console.error('Error during login:', error);
-    res.status(500).json({ error: 'Server error' });
-  }
-});*/
-
-
-
-
 
 
 //  search 
@@ -252,19 +132,24 @@ app.get("/patient/:nom", async (req, res) => {
 // Update a patient by n_dossier
 app.put("/patient/:n_dossier", async (req, res) => {
   try {
-      const { n_dossier } = req.params; // Patient n_dossier
-      const { nom, prenom, age } = req.body; // New values
+      const { n_dossier } = req.params;
+      let { nom, prenom, date_naissance, age, sexe, telephone } = req.body;
+
+      // Vérifier si la date de naissance est uniquement une année
+      if (/^\d{4}$/.test(date_naissance)) {
+          date_naissance = `${date_naissance}-01-01`; // Complétez avec le 1er janvier
+      }
 
       const updatedPatient = await pool.query(
-          "UPDATE patient SET nom = $1, prenom = $2, age = $3 WHERE n_dossier = $4 RETURNING *",
-          [nom, prenom, age, n_dossier]
+          "UPDATE patient SET nom = $1, prenom = $2, date_naissance = $3, age = $4, sexe = $5, telephone = $6 WHERE n_dossier = $7 RETURNING *",
+          [nom, prenom, date_naissance, age, sexe, telephone, n_dossier]
       );
 
       if (updatedPatient.rows.length === 0) {
           return res.status(404).json({ message: "Patient not found" });
       }
 
-      res.json(updatedPatient.rows[0]); // Respond with the updated patient record
+      res.json(updatedPatient.rows[0]);
   } catch (err) {
       console.error(err.message);
       res.status(500).send("Server Error");
@@ -294,13 +179,61 @@ app.delete("/patient/:n_dossier", async (req, res) => {
 });
 
 
+// Add patient to waiting list
+app.post("/waiting-list", async (req, res) => {
+  try {
+      const { n_dossier } = req.body;
+      const newEntry = await pool.query(
+          "INSERT INTO waiting_list (n_dossier) VALUES ($1) RETURNING *",
+          [n_dossier]
+      );
+      res.json(newEntry.rows[0]);
+  } catch (err) {
+      console.error(err.message);
+      res.status(500).send("Server Error");
+  }
+});
 
-// Assuming you have a route like '/patients/search' to handle the search functionality
+// Get waiting list
+app.get("/waiting-list", async (req, res) => {
+  try {
+      const waitingList = await pool.query(
+          "SELECT wl.id, p.n_dossier, p.nom, p.prenom, p.date_naissance, p.sexe, p.telephone, wl.added_date " +
+          "FROM waiting_list wl " +
+          "JOIN patient p ON wl.n_dossier = p.n_dossier " +
+          "ORDER BY wl.added_date ASC"
+      );
+      res.json(waitingList.rows);
+  } catch (err) {
+      console.error(err.message);
+      res.status(500).send("Server Error");
+  }
+});
+
+// Remove patient from waiting list
+app.delete("/waiting-list/:id", async (req, res) => {
+  try {
+      const { id } = req.params;
+      const deletedEntry = await pool.query(
+          "DELETE FROM waiting_list WHERE id = $1 RETURNING *",
+          [id]
+      );
+      if (deletedEntry.rows.length === 0) {
+          return res.status(404).json({ message: "Entry not found" });
+      }
+      res.json(deletedEntry.rows[0]);
+  } catch (err) {
+      console.error(err.message);
+      res.status(500).send("Server Error");
+  }
+});
+
+
+
 app.get('/patients/search', async (req, res) => {
   try {
-    const { nom } = req.query; // Assuming 'nom' is the parameter for the patient's name
-    // Perform a database query to find patients with matching names
-    const patients = await Patient.find({ nom: { $regex: new RegExp(nom, "i") } }); // Case-insensitive search
+    const { nom } = req.query; 
+    const patients = await Patient.find({ nom: { $regex: new RegExp(nom, "i") } });
     res.json(patients);
   } catch (error) {
     console.error(error);
@@ -308,8 +241,282 @@ app.get('/patients/search', async (req, res) => {
   }
 });
 
-app.listen(5000, () =>{
-    console.log("server has started on port 5000");
+// Add a new medicament
+app.post("/medicament", async (req, res) => {
+  try {
+      const { designation, dosage, forme, description } = req.body;
+      const newMedicament = await pool.query(
+          "INSERT INTO medicaments (designation, dosage, forme, description) VALUES ($1, $2, $3, $4) RETURNING *",
+          [designation, dosage, forme, description]
+      );
+      res.json(newMedicament.rows[0]);
+  } catch (err) {
+      console.error(err.message);
+      res.status(500).send("Server Error");
+  }
+});
+
+// Get all medicaments
+app.get("/medicament", async (req, res) => {
+  try {
+      const allMedicaments = await pool.query("SELECT * FROM medicaments");
+      res.json(allMedicaments.rows);
+  } catch (err) {
+      console.error(err.message);
+      res.status(500).send("Server Error");
+  }
+});
+
+// Update a medicament
+app.put("/medicament/:id", async (req, res) => {
+  try {
+      const { id } = req.params;
+      const { designation, dosage, forme, description } = req.body;
+      const updatedMedicament = await pool.query(
+          "UPDATE medicaments SET designation = $1, dosage = $2, forme = $3, description = $4 WHERE id = $5 RETURNING *",
+          [designation, dosage, forme, description, id]
+      );
+      if (updatedMedicament.rows.length === 0) {
+          return res.status(404).json({ message: "Medicament not found" });
+      }
+      res.json(updatedMedicament.rows[0]);
+  } catch (err) {
+      console.error(err.message);
+      res.status(500).send("Server Error");
+  }
+});
+
+// Delete a medicament
+app.delete("/medicament/:id", async (req, res) => {
+  try {
+      const { id } = req.params;
+      const deletedMedicament = await pool.query(
+          "DELETE FROM medicaments WHERE id = $1 RETURNING *",
+          [id]
+      );
+      if (deletedMedicament.rows.length === 0) {
+          return res.status(404).json({ message: "Medicament not found" });
+      }
+      res.json(deletedMedicament.rows[0]);
+  } catch (err) {
+      console.error(err.message);
+      res.status(500).send("Server Error");
+  }
+});
+
+/////////////////////////////////
+app.get('/familiaux', async (req, res) => {
+  try {
+      const result = await pool.query("SELECT antecedent_id, nom_antecedent FROM Antecedents WHERE type_antecedent = 'Familiaux'");
+      res.json(result.rows);
+  } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server error');
+  }
+});
+
+app.get('/chirurgicaux', async (req, res) => {
+  try {
+      const result = await pool.query("SELECT antecedent_id, nom_antecedent FROM Antecedents WHERE type_antecedent = 'Chirurgicaux'");
+      res.json(result.rows);
+  } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server error');
+  }
+});
+
+app.get('/medicaux', async (req, res) => {
+  try {
+      const result = await pool.query("SELECT antecedent_id, nom_antecedent FROM Antecedents WHERE type_antecedent = 'Medicaux'");
+      res.json(result.rows);
+  } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server error');
+  }
+});
+
+app.post('/antecedents', async (req, res) => {
+  const { n_dossier, antecedent_ids } = req.body; // Change antecedent_id to antecedent_ids
+
+  if (!Array.isArray(antecedent_ids) || !n_dossier) {
+      return res.status(400).send('Bad request');
+  }
+
+  try {
+      const queries = antecedent_ids.map(antecedent_id => {
+          return pool.query(
+              "INSERT INTO avoir_antecedents (antecedent_id, n_dossier) VALUES ($1, $2)",
+              [antecedent_id, n_dossier]
+          );
+      });
+
+      await Promise.all(queries);
+      res.status(201).send('Antecedents added');
+  } catch (err) {
+      console.error(err.message);
+      res.status(500).send('Server error');
+  }
+});
+////////////////////////////
+
+
+// Route pour créer une consultation
+app.post('/consultation', async (req, res) => {
+    const {
+        n_dossier,
+        motif_consultation,
+        etat_general,
+        taille,
+        poids,
+        pression_arterielle,
+        abdominal,
+        glycemie,
+        uree,
+        crea,
+        fns,
+        crp,
+        echographie,
+        tdm,
+        irm,
+        autres,
+    } = req.body;
+  
+    try {
+        const result = await pool.query(
+            `INSERT INTO consultation (patient_id, date_consultation, motif_consultation, etat_general, taille, poids, pression_arterielle, urogenital, abdominal, glycemie, uree, crea, fns, crp, echographie, tdm, irm, autres) 
+             VALUES ($1, NOW(), $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17) RETURNING *`,
+            [
+                n_dossier,
+                motif_consultation || null,
+                etat_general || null,
+                taille || null,
+                poids || null,
+                pression_arterielle || null,
+                abdominal || null,
+                glycemie || null,
+                uree || null,
+                crea || null,
+                fns || null,
+                crp || null,
+                echographie || null,
+                tdm || null,
+                irm || null,
+                autres || null,
+            ]
+        );
+        res.status(201).json(result.rows[0]);
+    } catch (error) {
+        console.error('Erreur lors de l\'enregistrement de la consultation:', error.message);
+        res.status(500).send('Erreur serveur');
+    }
+  });
+  
+
+////////////////////////////////////
+
+
+app.post('/bilan', async (req, res) => {
+  const {
+    n_dossier,
+    groupage,
+    fns,
+    glycemie,
+    creatininemie,
+    uree,
+    serologie,
+    tck_tp_inr,
+    fibrinogene,
+    ionogramme_sanguin,
+    bilan_hepatite,
+    ldh,
+    bilan_lipidique,
+    lipasemie,
+    calcemie,
+    phosphoremie,
+    tsh,
+    t3_t4,
+    thyrocalcitonine,
+    ac_anti_thyroglobuline,
+    psa,
+    marqueur_tumoral,
+    crp_vs,
+    fer_serique,
+    ferritine,
+    troponines,
+    bilan_protidine,
+    fsh_lh,
+    taux_de_prolactine,
+    progesterone,
+    oestrogenes,
+    testosterone,
+    beta_hcg,
+    vitamine_d,
+    chimie_des_urines,
+    ecbu,
+    bilan_inflammatoire,
+    hbaic,
+    d_dimetres,
+    acide_urique,
+    autre,
+  } = req.body;
+
+  try {
+    const result = await pool.query(
+      `INSERT INTO bilan (n_dossier, groupage, fns, glycemie, creatininemie, uree, serologie, tck_tp_inr, fibrinogene, ionogramme_sanguin, bilan_hepatite, ldh, bilan_lipidique, lipasemie, calcemie, phosphoremie, tsh, t3_t4, thyrocalcitonine, ac_anti_thyroglobuline, psa, marqueur_tumoral, crp_vs, fer_serique, ferritine, troponines, bilan_protidine, fsh_lh, taux_de_prolactine, progesterone, oestrogenes, testosterone, beta_hcg, vitamine_d, chimie_des_urines, ecbu, bilan_inflammatoire, hbaic, d_dimetres, acide_urique, autre)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35, $36, $37, $38, $39, $40, $41)
+       RETURNING *`,
+      [
+        n_dossier,
+        groupage || false,
+        fns || false,
+        glycemie || false,
+        creatininemie || false,
+        uree || false,
+        serologie || false,
+        tck_tp_inr || false,
+        fibrinogene || false,
+        ionogramme_sanguin || false,
+        bilan_hepatite || false,
+        ldh || false,
+        bilan_lipidique || false,
+        lipasemie || false,
+        calcemie || false,
+        phosphoremie || false,
+        tsh || false,
+        t3_t4 || false,
+        thyrocalcitonine || false,
+        ac_anti_thyroglobuline || false,
+        psa || false,
+        marqueur_tumoral || false,
+        crp_vs || false,
+        fer_serique || false,
+        ferritine || false,
+        troponines || false,
+        bilan_protidine || false,
+        fsh_lh || false,
+        taux_de_prolactine || false,
+        progesterone || false,
+        oestrogenes || false,
+        testosterone || false,
+        beta_hcg || false,
+        vitamine_d || false,
+        chimie_des_urines || false,
+        ecbu || false,
+        bilan_inflammatoire || false,
+        hbaic || false,
+        d_dimetres || false,
+        acide_urique || false,
+        autre || '',
+      ]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (error) {
+    console.error('Erreur lors de l\'enregistrement du bilan:', error.message);
+    res.status(500).send('Erreur serveur');
+  }
 });
 
 
+app.listen(5000, () =>{
+  console.log("server has started on port 5000");
+});

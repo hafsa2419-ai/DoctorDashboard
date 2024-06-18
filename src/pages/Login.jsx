@@ -1,153 +1,67 @@
-// pages/Login.jsx
-/*
+
 import React, { useState } from 'react';
-import { Form, Input, Button, Card } from 'antd';
-import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import './Login.css'; // Import your CSS file for styling
+import { useHistory } from 'react-router-dom';
+import { Form, Input, Button, message } from 'antd';
+import axios from 'axios';
+import './Login.css';  // Optional: for custom styling
 
-const Login = ({ history }) => {
-  const [loading, setLoading] = useState(false);
+const Login = () => {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const history = useHistory();
 
-  const onFinish = async (values) => {
-    console.log('Received values:', values);
-    setLoading(true);
-    
+  const handleSubmit = async () => {
     try {
-      // Send login request to backend
-      const response = await fetch('http://localhost:5000/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(values),
-      });
-  
-      if (response.ok) {
-        // Call the handleLogin function passed as a prop to set the isLoggedIn state to true
-        handleLogin(); // Assuming you passed handleLogin as a prop to the Login component
-  
-        // Navigate to the main content page after successful login
-        history.push('/MainContent');
+      const response = await axios.post('http://localhost:5000/login', { username, password });
+      if (response.data.message === 'Login successful') {
+        message.success('Login successful');
+        // Redirect to main content or dashboard page
+        history.push('/');
       } else {
-        throw new Error('Login failed');
+        message.error(response.data.error);
       }
     } catch (error) {
       console.error('Login error:', error);
-      setLoading(false);
+      message.error('An error occurred during login');
     }
   };
 
   return (
     <div className="login-container">
-      <Card className="login-card" title="Login">
-        <Form
-          name="normal_login"
-          initialValues={{ remember: true }}
-          onFinish={onFinish}
+      <Form
+        name="login"
+        className="login-form"
+        initialValues={{ remember: true }}
+        onFinish={handleSubmit}
+      >
+        <Form.Item
+          name="username"
+          rules={[{ required: true, message: 'Please input your Username!' }]}
         >
-          <Form.Item
-            name="username"
-            rules={[{ required: true, message: 'Please input your Username!' }]}
-          >
-            <Input prefix={<UserOutlined className="site-form-item-icon" />} placeholder="Username" />
-          </Form.Item>
-          <Form.Item
-            name="password"
-            rules={[{ required: true, message: 'Please input your Password!' }]}
-          >
-            <Input
-              prefix={<LockOutlined className="site-form-item-icon" />}
-              type="password"
-              placeholder="Password"
-            />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" className="login-form-button" loading={loading}>
-              Log in
-            </Button>
-          </Form.Item>
-        </Form>
-      </Card>
-    </div>
-  );
-};
-
-export default Login;*/
-
-import React, { useState } from 'react';
-import { Form, Input, Button, Card } from 'antd';
-import { UserOutlined, LockOutlined } from '@ant-design/icons';
-import './Login.css'; // Import your CSS file for styling
-
-const Login = ({ history }) => {
-  const [loading, setLoading] = useState(false);
-
-  const onFinish = async (values) => {
-    console.log('Received values:', values);
-    setLoading(true);
-    
-    try {
-      // Send login request to backend
-      const response = await fetch('http://localhost:5000/login', { 
-        // Change the endpoint to '/login'
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(values),
-      });
-      
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Login failed');
-      }
-  
-      // Navigate to the main content page after successful login
-      history.push('/MainContent');
-    } catch (error) {
-      console.error('Login error:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-
-  return (
-    <div className="login-container">
-      <Card className="login-card" title="Login">
-        <Form
-          name="normal_login"
-          initialValues={{ remember: true }}
-          onFinish={onFinish}
+          <Input
+            placeholder="Username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+          />
+        </Form.Item>
+        <Form.Item
+          name="password"
+          rules={[{ required: true, message: 'Please input your Password!' }]}
         >
-          <Form.Item
-            name="username"
-            rules={[{ required: true, message: 'Please input your Username!' }]}
-          >
-            <Input prefix={<UserOutlined className="site-form-item-icon" />} placeholder="Username" />
-          </Form.Item>
-          <Form.Item
-            name="password"
-            rules={[{ required: true, message: 'Please input your Password!' }]}
-          >
-            <Input
-              prefix={<LockOutlined className="site-form-item-icon" />}
-              type="password"
-              placeholder="Password"
-            />
-          </Form.Item>
-          <Form.Item>
-            <Button type="primary" htmlType="submit" className="login-form-button" loading={loading}>
-              Log in
-            </Button>
-          </Form.Item>
-        </Form>
-      </Card>
+          <Input.Password
+            placeholder="Password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+          />
+        </Form.Item>
+        <Form.Item>
+          <Button type="primary" htmlType="submit" className="login-form-button">
+            Log in
+          </Button>
+        </Form.Item>
+      </Form>
     </div>
   );
 };
 
 export default Login;
-
-

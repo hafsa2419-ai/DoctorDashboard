@@ -3,7 +3,7 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
 import { Layout } from 'antd';
 import Sidebar from './components/Sidebar';
-import CustomHeader from './components/Header';
+import CustomHeader from './components/CustomHeader';
 import MainContent from './components/MainContent';
 import Patients from './pages/Patients';
 import WaitingList from './pages/WaitingList';
@@ -13,6 +13,7 @@ import Medicament from './pages/Medicament';
 import Statistiques from './pages/Statistics';
 import Paiement from './pages/Paiment';
 import Logout from './pages/Logout';
+import Login from './pages/Login';
 import './App.css';
 
 
@@ -31,7 +32,7 @@ const App = () => {
           </Header>
           <Content className='content'>
             <Switch>
-              <Route exact path="/MainContent" component={MainContent} />
+              <Route exact path="/" component={MainContent} />
               <Route path="/patients" component={Patients} />
               <Route path="/waiting-list" component={WaitingList} />
               <Route path="/consultation" component={Consultation } />  
@@ -40,6 +41,7 @@ const App = () => {
               <Route path="/statistiques" component={Statistiques} />
               <Route path="/paiement" component={Paiement} />
               <Route path="/logout" component={Logout} />
+              <Route path="/login" component={Login} />
             </Switch>
           </Content>
         </Layout>
