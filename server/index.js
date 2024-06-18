@@ -7,63 +7,6 @@ const bcrypt = require('bcrypt');
 app.use(cors());
 app.use(express.json());
 
-// User registration
-app.post('/register', async (req, res) => {
-  const { username, password } = req.body;
-
-  if (!username || !password) {
-      return res.status(400).json({ error: 'Username and password are required' });
-  }
-
-  try {
-      const existingUser = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
-      if (existingUser.rows.length > 0) {
-          return res.status(400).json({ error: 'Username already taken' });
-      }
-
-      const hashedPassword = await bcrypt.hash(password, 10);
-
-      const newUser = await pool.query(
-          'INSERT INTO users (username, passworduser) VALUES ($1, $2) RETURNING *',
-          [username, hashedPassword]
-      );
-
-      res.status(201).json({ message: 'User registered successfully', user: newUser.rows[0] });
-  } catch (error) {
-      console.error('Error during registration:', error);
-      res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
-// User login
-app.post('/login', async (req, res) => {
-  const { username, password } = req.body;
-
-  if (!username || !password) {
-      return res.status(400).json({ error: 'Username and password are required' });
-  }
-
-  try {
-      const result = await pool.query('SELECT * FROM users WHERE username = $1', [username]);
-
-      if (result.rows.length === 0) {
-          return res.status(404).json({ error: 'User not found' });
-      }
-
-      const user = result.rows[0];
-      const passwordMatch = await bcrypt.compare(password, user.passworduser);
-
-      if (!passwordMatch) {
-          return res.status(401).json({ error: 'Invalid password' });
-      }
-
-      res.status(200).json({ message: 'Login successful', user: { id: user.id, username: user.username } });
-  } catch (error) {
-      console.error('Error during login:', error);
-      res.status(500).json({ error: 'Internal server error' });
-  }
-});
-
 
 
 // Add a patient
