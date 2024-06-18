@@ -15,8 +15,25 @@ CREATE TABLE patient (
 CREATE TABLE consultation (
     consultation_id SERIAL PRIMARY KEY,
     patient_id INT REFERENCES patient(n_dossier),
-    date_consultation DATE
+    date_consultation DATE,
+    motif_consultation TEXT,
+    etat_general TEXT,
+    taille FLOAT,
+    poids FLOAT,
+    pression_arterielle TEXT,
+    urogenital TEXT,
+    abdominal TEXT,
+    glycemie FLOAT,
+    uree FLOAT,
+    crea FLOAT,
+    fns TEXT,
+    crp FLOAT,
+    echographie TEXT,
+    tdm TEXT,
+    irm TEXT,
+    autres TEXT
 );
+
 
 
 CREATE TABLE waiting_list (
